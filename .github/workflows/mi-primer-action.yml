@@ -1,0 +1,23 @@
+name: Mi Primer Action Básico
+
+# 'on' define cuándo se ejecuta. Aquí es: "al hacer push"
+on: [push]
+
+jobs:
+  # Definimos un trabajo llamado 'crear-txt'
+  crear-txt:
+    # Le decimos a GitHub que use una máquina con Linux (Ubuntu)
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Paso 1: Crear el archivo usando un comando de terminal (echo)
+      - name: Crear el archivo de texto
+        run: echo "¡Hola! Este archivo fue creado por un robot de GitHub el $(date)" > saludo.txt
+
+      # Paso 2: Listar los archivos para demostrar que se creó
+      - name: Verificar que el archivo existe
+        run: ls -l
+
+      # Paso 3: Leer el contenido del archivo en la consola
+      - name: Leer el contenido
+        run: cat saludo.txt
