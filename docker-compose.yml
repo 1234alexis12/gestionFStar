@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # SERVICIO BASE DE DATOS
+  mysqldb:
+    image: mysql:8.0
+    container_name: fibra_mysql
+    ports:
+      - "3308:3306" # Acceso externo en el puerto 3307
+    environment:
+      MYSQL_ROOT_PASSWORD: alexis1  # Usamos la contraseña de tu properties
+      MYSQL_DATABASE: fibrastar_db  # <--- CAMBIO 1: Nombre correcto
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # <--- CAMBIO 2: Cargamos tu script SQL al iniciar
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
+    networks:
+      - fibra-net
+
+  # SERVICIO APP SPRING BOOT
+  app:
+    build: .
+    container_name: fibra_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysqldb
+    environment:
+      # Configuramos Spring para que hable con 'fibrastar_db' dentro del contenedor
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysqldb:3306/fibrastar_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: alexis1
+      # Forzamos que Hibernate cree las tablas si el script SQL no las tiene
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update 
+    networks:
+      - fibra-net
+
+volumes:
+  mysql_data:
+
+networks:
+  fibra-net:
