@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Iniciar Sesión - Fibra Star</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #2c3e50; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { width: 400px; padding: 40px; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .btn-primary { background-color: #1abc9c; border: none; }
+        .btn-primary:hover { background-color: #16a085; }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-secondary"><i class="fas fa-layer-group text-success"></i> FIBRA STAR</h2>
+            <p class="text-muted small">Ingrese sus credenciales</p>
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger text-center p-2 small">Usuario o contraseña incorrectos.</div>
+        <div th:if="${param.logout}" class="alert alert-info text-center p-2 small">Has cerrado sesión correctamente.</div>
+        
+        <form th:action="@{/login}" method="post">
+            <div class="mb-3">
+                <label class="form-label fw-bold small">Usuario</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                    <input type="text" name="username" class="form-control" placeholder="admin" required autofocus>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold small">Contraseña</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="******" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">INGRESAR</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Contratos de Instalación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background-color: #f4f6f9; }
+        .sidebar { height: 100vh; width: 250px; position: fixed; top: 0; left: 0; background-color: #2c3e50; padding-top: 20px; color: white; }
+        .sidebar a { padding: 15px 25px; text-decoration: none; font-size: 16px; color: #b0b8c1; display: block; }
+        .sidebar a:hover, .sidebar a.active { background-color: #34495e; color: white; border-left: 4px solid #1abc9c; }
+        .main-content { margin-left: 250px; padding: 20px; }
+        .header-verde { background-color: #009b77; color: white; padding: 10px 15px; border-radius: 5px 5px 0 0; font-weight: bold; }
+        .table-header-verde { background-color: #009b77; color: white; }
+    </style>
+</head>
+<body>
+
+<div th:replace="~{fragments/sidebar :: sidebar-component}"></div>
+
+<div class="main-content">
+    <h4 class="text-secondary mb-3">CONTRATOS DE INSTALACIONES</h4>
+
+    <div class="d-flex justify-content-end mb-2 gap-2">
+        <a href="/instalaciones/exportar" class="btn btn-outline-success"><i class="fas fa-file-excel"></i> Exportar</a>
+        <button class="btn btn-success" onclick="limpiarModal()"><i class="fas fa-plus"></i> Nuevo Registro</button>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="header-verde"><i class="fas fa-filter me-1"></i> Filtro</div>
+        <div class="card-body bg-light">
+             <form action="/instalaciones" method="get" class="row g-3">
+                <div class="col-md-3"><label class="form-label small">Cliente</label><input type="text" name="cliente" class="form-control form-control-sm"></div>
+                <div class="col-md-3"><button type="submit" class="btn btn-success btn-sm w-100 mt-4">Filtrar</button></div>
+             </form>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-header-verde">
+                    <tr><th>NUMERO</th><th>CLIENTE</th><th>PLAN</th><th>ZONA</th><th>ESTADO</th><th>ACCIÓN</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="inst : ${listaInstalaciones}">
+                        <td th:text="${inst.numeroInstalacion}" class="fw-bold"></td>
+                        <td th:text="${inst.nombreCliente}"></td>
+                        <td th:text="${inst.plan != null ? inst.plan.nombre : 'Sin Plan'}"></td>
+                        <td th:text="${inst.zona}"></td>
+                        <td>
+                            <span th:if="${inst.estado == 'Culminada'}" class="badge bg-success">Culminada</span>
+                            <span th:if="${inst.estado == 'Pendiente'}" class="badge bg-warning text-dark">Pendiente</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary"
+                                    th:onclick="editarInstalacion(
+                                        [[${inst.id}]], 
+                                        [[${inst.numeroInstalacion}]], 
+                                        [[${inst.nombreCliente}]], 
+                                        [[${inst.cajaNap}]], 
+                                        [[${inst.tipo}]], 
+                                        [[${inst.zona}]], 
+                                        [[${inst.fechaProgramada}]], 
+                                        [[${inst.estado}]],
+                                        [[${inst.fechaFinalizada}]],
+                                        [[${inst.plan != null ? inst.plan.id : ''}]] 
+                                    )">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a th:href="@{/instalaciones/eliminar/{id}(id=${inst.id})}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Eliminar?')"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalInstalacion" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalTitulo">Nueva Instalación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form th:action="@{/instalaciones/guardar}" th:object="${instalacion}" method="post">
+                <div class="modal-body">
+                    <input type="hidden" th:field="*{id}" id="txtId">
+                    <div class="mb-3"><label>Número Instalación</label><input type="text" th:field="*{numeroInstalacion}" id="txtNumero" class="form-control" required></div>
+                    <div class="mb-3"><label>Cliente</label><input type="text" th:field="*{nombreCliente}" id="txtCliente" class="form-control" required></div>
+                    
+                    <div class="mb-3">
+                        <label class="fw-bold text-success">Plan Contratado</label>
+                        <select th:field="*{plan}" id="txtPlan" class="form-select" required>
+                            <option value="">-- Seleccione Plan --</option>
+                            <option th:each="p : ${listaPlanes}" th:value="${p.id}" th:text="${p.nombre} + ' - S/ ' + ${p.costo}"></option>
+                        </select>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-6"><label>Caja NAP</label><input type="text" th:field="*{cajaNap}" id="txtNap" class="form-control"></div>
+                        <div class="col-6"><label>Tipo</label><select th:field="*{tipo}" id="txtTipo" class="form-select"><option value="Hogar">Hogar</option><option value="Empresarial">Empresarial</option></select></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-6"><label>Zona</label><select th:field="*{zona}" id="txtZona" class="form-select"><option value="Alata">Alata</option><option value="San Jose">San Jose</option><option value="Tiabaya">Tiabaya</option></select></div>
+                        <div class="col-6"><label>Fecha Prog.</label><input type="date" th:field="*{fechaProgramada}" id="txtFechaProg" class="form-control"></div>
+                    </div>
+                    <div class="mb-3"><label>Estado</label><select th:field="*{estado}" id="txtEstado" class="form-select"><option value="Pendiente">Pendiente</option><option value="Culminada">Culminada</option></select></div>
+                    <div class="mb-3"><label>Fecha Fin (Opcional)</label><input type="date" th:field="*{fechaFinalizada}" id="txtFechaFin" class="form-control"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    var myModal;
+    document.addEventListener('DOMContentLoaded', function () { myModal = new bootstrap.Modal(document.getElementById('modalInstalacion')); });
+
+    function limpiarModal() {
+        document.getElementById('txtId').value = ''; 
+        document.getElementById('txtNumero').value = '';
+        document.getElementById('txtCliente').value = '';
+        document.getElementById('txtPlan').value = ''; // Limpiar Plan
+        document.getElementById('modalTitulo').innerText = 'Nueva Instalación';
+        myModal.show();
+    }
+
+    function editarInstalacion(id, numero, cliente, nap, tipo, zona, fechaProg, estado, fechaFin, planId) {
+        document.getElementById('txtId').value = id; 
+        document.getElementById('txtNumero').value = numero;
+        document.getElementById('txtCliente').value = cliente;
+        document.getElementById('txtNap').value = nap;
+        document.getElementById('txtTipo').value = tipo;
+        document.getElementById('txtZona').value = zona;
+        document.getElementById('txtFechaProg').value = fechaProg;
+        document.getElementById('txtEstado').value = estado;
+        document.getElementById('txtFechaFin').value = fechaFin;
+        document.getElementById('txtPlan').value = planId; // Seleccionar Plan
+        
+        document.getElementById('modalTitulo').innerText = 'Editar Instalación';
+        myModal.show();
+    }
+</script>
+</body>
+</html>
